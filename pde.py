@@ -1,4 +1,5 @@
 import numpy as np
+
 import numpy.linalg as npl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -14,7 +15,7 @@ class PDE:
     def __init__(self, f, mu, M, N, T, x_0=0, x_M=1, t_0=0, frames=0):
         self.f = f
         self.mu = mu
-        
+
         self.M = M
         self.h = (x_M - x_0) / M
         self.N = N
@@ -40,26 +41,26 @@ class PDE:
 
         assert self.frames > 0, "Don't have any stored frames, try a 1D plot"
 
-        x = np.linspace(self.x_0, self.x_M, self.M, dtype=float)
+        x = np.linspace(self.x_0, self.x_M, self.M+1, dtype=float)
         t = np.linspace(self.t_0, self.T, self.frames, dtype=float)
         X, Y = np.meshgrid(x,t)
-        
+
         print(X.shape)
         print(Y.shape)
-        
+
         Z = self.U
         print(Z.shape)
 
         # Define a new figure with given size and dpi
         fig = plt.figure(figsize=(8, 6), dpi=100)
         ax = fig.gca(projection='3d')
-        surf = ax.plot_surface(X, Y, Z,             
+        surf = ax.plot_surface(X, Y, Z,
                             rstride=1, cstride=1, # Sampling rates for the x and y input data
                             cmap=cm.viridis)      # Use the new fancy colormap viridis
-        
+
         # Set initial view angle
         ax.view_init(30, 225)
-        
+
         # Set labels and show figure
         ax.set_xlabel('$x$')
         ax.set_ylabel('$t$')
@@ -77,5 +78,5 @@ if __name__ == '__main__':
 
     import numpy.random as npr
     U = npr.randn(frames, M) + 15
-    poisson.U = U
+    #poisson.U = U
     poisson.plot2D()
