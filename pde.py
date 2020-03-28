@@ -80,7 +80,7 @@ class PDE:
             self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
             self.U_grid[t,] += self.U_n
 
-            print(f"U_n {self.U_n}")
+            #print(f"U_n {self.U_n}")
 
 
 
@@ -119,10 +119,14 @@ class PDE:
 
 if __name__ == '__main__':
 
-    M = 20
-    N = 20
+    M = 200
+    N = 200
     frames=3
-    poisson = PDE(f=lambda x: 10*x,u_0=lambda x: np.sin(np.pi*x), mu=1, T=3,)
+    a=4
+    mu=0.5
+    T=3
+
+    poisson = PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,)
     #print(poisson.f)
 
     import numpy.random as npr
@@ -135,12 +139,46 @@ if __name__ == '__main__':
     #print((poisson.U_grid).shape)
     #print(poisson.U_grid)
 
+
+    def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, found using separation of variables
+
+        x = np.linspace(0, 1, M+1)
+        U_n = np.sin(np.pi*x)
+        U = np.zeros((N+1,M+1), dtype = float)
+        U[0,] += U_n
+        #t = np.linspace(self.t_0, self.T, N+1)
+        k = (T)/N
+        print(f"k:{k}")
+        mult = np.exp((a-(np.pi)**2*mu)*k)
+        print(mult)
+        for n in range(1,N+1):
+            U_n *= mult
+            U[n,] += U_n
+        return U
+
+    u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
+
+
+
+    plt.plot(poisson.x, u[0,], label="$U_0$")
+    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
+    plt.plot(poisson.x, u[5,], label="$U_5$")
+    plt.plot(poisson.x, u[10,], label="$U_{10}$")
+    plt.plot(poisson.x, u[15,], label="$U_{15}$")
+    plt.plot(poisson.x, u[N,], label="$U_N$")
+    plt.title("Exact solution")
+    plt.legend()
+    plt.show()
+
     plt.plot(poisson.x,(poisson.U_grid)[0,], label="$U_0$")
     #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
     plt.plot(poisson.x,(poisson.U_grid)[5,], label="$U_5$")
     plt.plot(poisson.x,(poisson.U_grid)[10,], label="$U_{10}$")
     plt.plot(poisson.x,(poisson.U_grid)[15,], label="$U_{15}$")
     plt.plot(poisson.x,(poisson.U_grid)[poisson.N,], label="$U_N$")
-    #plt.plot(self.x,self.U_s)
+    plt.title("Numerical solution")
     plt.legend()
     plt.show()
+
+
+    error = np.abs(u-poisson.U_grid)
