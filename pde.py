@@ -45,7 +45,6 @@ class PDE:
         self.U_grid[0,] += self.U_n
 
 
-        
         #Construction of the system to find U^*
         #A = np.tridiag(-self.r*0.5,1+self.r,-self.r*0.5, M+1)
         A = np.zeros((M+1, M+1), dtype = float)
@@ -76,8 +75,6 @@ class PDE:
             self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
             self.U_grid[t,] += self.U_n
 
-            #print(f"U_n {self.U_n}")
-
 
 
     def plot2D(self, title="", x_skip=1, t_skip=1):
@@ -107,138 +104,71 @@ class PDE:
         ax.set_title(title)
         plt.show()
 
+def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, found using separation of variables
+
+    x = np.linspace(0, 1, M+1)
+    U_n = np.sin(np.pi*x)
+    U = np.zeros((N+1,M+1), dtype = float)
+    U[0,] += U_n
+    #t = np.linspace(self.t_0, self.T, N+1)
+    k = (T)/N
+    #print(f"k:{k}")
+    mult = np.exp((a-(np.pi)**2*mu)*k)
+    #print(mult)
+    for n in range(1,N+1):
+        U_n *= mult
+        U[n,] += U_n
+    return U
+
+def convergence_test_X(pde, exact_solution, T, a, mu):
+    step_num = 6 #Different stepsizes
+    stepvec = np.zeros(step_num)
+    errvec = np.zeros(step_num)
+    M = 10
+    N = 1000
+    for i in range(step_num):
+        pde.solver(M,N)
+        err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
+
+        stepvec[i] = pde.h
+        #taking the maximum norm of all gridpoints and timesteps
+        errvec[i] = npl.norm(err.flatten(), np.inf)
+
+        M *= 2
+    order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+    print(f"order: {order}")
+    plt.loglog(stepvec,errvec)
+    plt.show()
+
+
+def convergence_test_T(pde, exact_solution, T, a, mu):
+    step_num = 7 #Different stepsizes
+    stepvec = np.zeros(step_num)
+    errvec = np.zeros(step_num)
+    M = 1000
+    N = 10
+    for i in range(step_num):
+        pde.solver(M,N)
+        err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
+
+        stepvec[i] = pde.k
+        #taking the maximum norm of all gridpoints and timesteps
+        errvec[i] = npl.norm(err.flatten(), np.inf)
+
+        N *= 2
+    order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+    print(f"order: {order}")
+
+
 
 if __name__ == '__main__':
 
     M = 100
     N = 100
-    frames=3
     a=4
     mu=0.5
     T=3
 
     poisson = PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,)
-    #print(poisson.f)
 
-    #import numpy.random as npr
-    #U = npr.randn(frames, M) + 15
-    #poisson.U = U
-    #poisson.plot2D()
-
-    poisson.solver(M,N)
-    poisson.plot2D(x_skip=3, t_skip=3)
-    #print((poisson.U_grid).shape)
-    #print(poisson.U_grid)
-
-
-    def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, found using separation of variables
-
-        x = np.linspace(0, 1, M+1)
-        U_n = np.sin(np.pi*x)
-        U = np.zeros((N+1,M+1), dtype = float)
-        U[0,] += U_n
-        #t = np.linspace(self.t_0, self.T, N+1)
-        k = (T)/N
-        #print(f"k:{k}")
-        mult = np.exp((a-(np.pi)**2*mu)*k)
-        #print(mult)
-        for n in range(1,N+1):
-            U_n *= mult
-            U[n,] += U_n
-        return U
-
-    u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
-
-#region eh
-    '''
-    plt.plot(poisson.x, u[0,], label="$U_0$")
-    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
-    plt.plot(poisson.x, u[5,], label="$U_5$")
-    plt.plot(poisson.x, u[10,], label="$U_{10}$")
-    plt.plot(poisson.x, u[15,], label="$U_{15}$")
-    plt.plot(poisson.x, u[N,], label="$U_N$")
-    plt.title("Exact solution")
-    plt.legend()
-    plt.show()
-
-    plt.plot(poisson.x,(poisson.U_grid)[0,], label="$U_0$")
-    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
-    plt.plot(poisson.x,(poisson.U_grid)[5,], label="$U_5$")
-    plt.plot(poisson.x,(poisson.U_grid)[10,], label="$U_{10}$")
-    plt.plot(poisson.x,(poisson.U_grid)[15,], label="$U_{15}$")
-    plt.plot(poisson.x,(poisson.U_grid)[poisson.N,], label="$U_N$")
-    plt.title("Numerical solution")
-    plt.legend()
-    plt.show()
-    '''
-#endregion
-
-    def convergence_test(pde, exact_solution, T, a, mu):
-        step_num = 8 #Different stepsizes
-        stepvec = np.zeros(step_num)
-        errvec = np.zeros(step_num)
-        M = 10
-        N = 1000
-        for i in range(step_num):
-            pde.solver(M,N)
-            err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
-
-            stepvec[i] = pde.h
-            errvec[i] = npl.norm(err.flatten(), np.inf)
-
-            M *= 2
-        order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
-        #print(f"Stepvec: {stepvec}")
-        #print(f"Errvec: {errvec}")
-        print(f"order: {order}")
-        plt.loglog(stepvec,errvec)
-        plt.show()
-
-
-    def convergence_testT(pde, exact_solution, T, a, mu):
-        step_num = 10 #Different stepsizes
-        stepvec = np.zeros(step_num)
-        errvec = np.zeros(step_num)
-        M = 1000
-        N = 10
-        for i in range(step_num):
-            pde.solver(M,N)
-            err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
-
-            #Normvec is a vector of the max norm of the spatial error for every timestep,
-            #errvec contains the maxnorm of normvec, ie largest error in time
-            stepvec[i] = pde.k
-            normvec = np.zeros(M+1)
-            for j in range(M+1):
-                normvec[j] = npl.norm(err[:,j], np.inf)
-            errvec[i] = npl.norm(normvec, np.inf)
-
-            N *= 2
-        order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
-        print(f"Stepvec: {stepvec}")
-        print(f"Errvec: {errvec}")
-        print(f"order: {order}")
-
-
-<<<<<<< HEAD
-    convergence_test(poisson,exact_solution, T, a, mu)
-
-    #goob = np.array([1,4,7])
-    #groog = np.arange(10)+5
-    #print(groog[goob])
-
-
-=======
->>>>>>> 99d701807e0f1d40d870375d3fa1b3a657e2afcf
-    '''
-    error = np.abs(u-poisson.U_grid)
-    errvec = np.zeros(N+1,dtype=float)
-    for i in range(N+1):
-        errvec[i] = npl.norm(error[i,])
-
-
-    plt.plot(poisson.t,errvec)
-    plt.show()
-    '''
-    #print(error[N,N])
-    '''
+    convergence_test_X(poisson,exact_solution, T, a, mu)
