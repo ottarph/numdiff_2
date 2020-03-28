@@ -148,9 +148,9 @@ if __name__ == '__main__':
         U[0,] += U_n
         #t = np.linspace(self.t_0, self.T, N+1)
         k = (T)/N
-        print(f"k:{k}")
+        #print(f"k:{k}")
         mult = np.exp((a-(np.pi)**2*mu)*k)
-        print(mult)
+        #print(mult)
         for n in range(1,N+1):
             U_n *= mult
             U[n,] += U_n
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
 
 
-
+    '''
     plt.plot(poisson.x, u[0,], label="$U_0$")
     #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
     plt.plot(poisson.x, u[5,], label="$U_5$")
@@ -179,6 +179,24 @@ if __name__ == '__main__':
     plt.title("Numerical solution")
     plt.legend()
     plt.show()
+    '''
+
+    def convergence_test(pde, exact_solution):
+        p = 8 #Different stepsizes
+        stepvec = np.zeros(p)
+        errvec = np.zeros(p)
+        M = 10
+
+        
+
 
 
     error = np.abs(u-poisson.U_grid)
+    errvec = np.zeros(N+1,dtype=float)
+    for i in range(N+1):
+        errvec[i] = npl.norm(error[i,])
+
+
+    plt.plot(poisson.t,errvec)
+    plt.show()
+    #print(error[N,N])
