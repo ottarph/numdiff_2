@@ -10,7 +10,7 @@ from scipy.sparse.linalg import factorized
 
 
 class Epidemic:
-    #def __init__(self, f, u_0, mu, T, g_0=0, g_M=0, x_0=0, x_M=1, t_0=0)
+    
     def __init__(self, beta, gamma, mu_s, mu_i, T, s0, i0, x_0=0, x_M=1, t_0=0, g_0=0, g_M=0):
 
         self.beta = beta # interaction constant between infected and susceptible
@@ -53,51 +53,80 @@ class Epidemic:
         self.N = N
         self.t = np.linspace(self.t_0, self.T, N+1)
         self.k = (self.T - self.t_0) / N
-        self.r = self.mu * self.k / self.h**2
+        
+        self.r_i = self.mu_i * self.k / self.h**2
+        self.r_s = self.mu_s * self.k / self.h**2
 
         #initializing the vectors for i^n,s^n and i^*,s^*
-        self.i_n = self.u_0(self.x)
-        self.i_s = np.zeros((M+1), dtype = float)
-        self.s_n = self.u_0(self.x)
-        self.s_s = np.zeros((M+1), dtype = float)
+        self.I_n = self.i0(self.x)
+        self.I_s = np.zeros((M+1), dtype = float)
+        self.S_n = self.s0(self.x)
+        self.S_s = np.zeros((M+1), dtype = float)
 
         #Initializing the matrix for the numerical solution on the grid
-        self.i_grid = np.zeros((N+1,M+1), dtype = float)
-        self.i_grid[0,] += self.i_n
-        self.s_grid = np.zeros((N+1,M+1), dtype = float)
-        self.s_grid[0,] += self.s_n
+        self.I_grid = np.zeros((N+1,M+1), dtype = float)
+        self.I_grid[0,] += self.I_n
+        self.S_grid = np.zeros((N+1,M+1), dtype = float)
+        self.S_grid[0,] += self.S_n
 
 
 
         #Construction of the system to find U^*
-        A = np.zeros((M+1, M+1), dtype = float)
-        A += np.diag(np.full(M, -self.r*0.5), -1)
-        A += np.diag(np.full(M, -self.r*0.5), 1)
-        A += np.diag(np.full(M+1, 1 + self.r))
+        A_i = np.zeros((M+1, M+1), dtype = float)
+        A_i += np.diag(np.full(M, -self.r_i*0.5), -1)
+        A_i += np.diag(np.full(M, -self.r_i*0.5), 1)
+        A_i += np.diag(np.full(M+1, 1 + self.r_i))
 
-        B = np.zeros((M+1, M+1), dtype = float)
-        B += np.diag(np.full(M, self.r*0.5), -1)
-        B += np.diag(np.full(M, self.r*0.5), 1)
-        B += np.diag(np.full(M+1, 1 - self.r))
+        B_i = np.zeros((M+1, M+1), dtype = float)
+        B_i += np.diag(np.full(M, self.r_i*0.5), -1)
+        B_i += np.diag(np.full(M, self.r_i*0.5), 1)
+        B_i += np.diag(np.full(M+1, 1 - self.r_i))
+
+        
+        A_s = np.zeros((M+1, M+1), dtype = float)
+        A_s += np.diag(np.full(M, -self.r_s*0.5), -1)
+        A_s += np.diag(np.full(M, -self.r_s*0.5), 1)
+        A_s += np.diag(np.full(M+1, 1 + self.r_s))
+
+        B_s = np.zeros((M+1, M+1), dtype = float)
+        B_s += np.diag(np.full(M, self.r_s*0.5), -1)
+        B_s += np.diag(np.full(M, self.r_s*0.5), 1)
+        B_s += np.diag(np.full(M+1, 1 - self.r_s))
 
         # fixing boundary conditions for U^*
-        A[0,0]=1
-        A[0,1]=0
-        A[M,M-1]=0
-        A[M,M]=1
+        A_i[0,0]=1
+        A_i[0,1]=0
+        A_i[M,M-1]=0
+        A_i[M,M]=1
+
+        A_s[0,0]=1
+        A_s[0,1]=0
+        A_s[M,M-1]=0
+        A_s[M,M]=1
 
         for t in range(1,N+1):
-            b_i = B @ self.i_n + self.k*self.f_i(self.i_n, self.s_n)
-            b_s = B @ self.s_n + self.k*self.f_s(self.i_n, self.s_n)
 
-            b[0] = self.g_0
-            b[M] = self.g_M
+            b_i = B_i @ self.I_n + self.k*self.f_i(self.I_n, self.S_n)
+            b_s = B_s @ self.S_n + self.k*self.f_s(self.I_n, self.S_n)
 
-            self.U_s = npl.solve(A,b)
+            b_i[0] = self.g_0
+            b_i[M] = self.g_M
+
+            b_s[0] = self.g_0
+            b_s[M] = self.g_M
+
+            #self.U_s = npl.solve(A,b)
+            self.I_s = npl.solve(A_i, b_i)
+            self.S_s = npl.solve(A_s, b_s)
 
             #Computing U^(n+1)
-            self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
-            self.U_grid[t,] += self.U_n
+            #self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
+            self.I_n = self.I_s + (self.k/2) * (self.f_i(self.I_s, self.S_s) - self.f_i(self.I_n, self.S_n))
+            self.S_n = self.S_s + (self.k/2) * (self.f_s(self.I_s, self.S_s) - self.f_s(self.I_n, self.S_n))
+
+            #self.U_grid[t,] += self.U_n
+            self.I_grid[t,] += self.I_n
+            self.S_grid[t,] += self.S_n
 
 
         
@@ -110,7 +139,7 @@ class Epidemic:
         t = np.linspace(self.t_0, self.T, self.N+1, dtype=float)[::t_skip]
         X, Y = np.meshgrid(x,t)
 
-        Z = self.i_grid[::t_skip,::x_skip]
+        Z = self.I_grid[::t_skip,::x_skip]
 
         # Define a new figure with given size and dpi
         fig = plt.figure(figsize=(8, 6), dpi=100)
@@ -126,7 +155,7 @@ class Epidemic:
         ax.set_title(title_i)
 
 
-        Z = self.s_grid[::t_skip,::x_skip]
+        Z = self.S_grid[::t_skip,::x_skip]
 
         # Define a new figure with given size and dpi
         fig = plt.figure(figsize=(8, 6), dpi=100)
@@ -192,7 +221,48 @@ class Epidemic:
 
 
 if __name__ == '__main__':
-    plague = Epidemic(beta=3, gamma=1, mu_s=0.1, mu_i=0.05, s0=lambda x: 0*x + 1, i0=lambda x: 0*x + 0.5)
 
-    plague.isolated_development(1, 0.05, 10, 100)
+    i0 = lambda x: np.sin(np.pi*x) * 0.3
+    s0 = lambda x: np.sin(np.pi*x) * 0.7
+    beta = 3
+    gamma = 1
+    mu = 0.1
+    T = 1
+
+#def __init__(self, beta, gamma, mu_s, mu_i, T, s0, i0, x_0=0, x_M=1, t_0=0, g_0=0, g_M=0):    
+    plague = Epidemic(beta=beta, gamma=gamma, mu_s=mu, mu_i=mu, T=T,
+                        s0=s0, i0=i0)
+
+    #plague.isolated_development(1, 0.05, 10, 100)
+
+    M = 32
+    N = 32
+    plague.solver(M, N)
+    plague.plot2D()
+
+#region slices
+    '''
+    plt.figure()
+    x = plague.x
+    i0 = plague.I_grid[0,:]
+    s0 = plague.S_grid[0,:]
+
+    i1 = plague.I_grid[N//2,:]
+    s1 = plague.S_grid[N//2,:]
+
+    i2 = plague.I_grid[N,:]
+    s2 = plague.S_grid[N,:]
+
+    plt.plot(x, i0, label='$I, t=0$')
+    plt.plot(x, i1, label='$I, t=T/2$')
+    plt.plot(x, i2, label='$I, t=T$')
+    plt.plot(x, s0, linestyle='dashed', label='$S, t=0$')
+    plt.plot(x, s1, linestyle='dashed', label='$S, t=T/2$')
+    plt.plot(x, s2, linestyle='dashed', label='$S, t=T$')
+    plt.legend()
+    plt.show()
+    '''
+#endregion
+
+    
 
