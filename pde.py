@@ -107,6 +107,64 @@ class PDE:
         ax.set_title(title)
         plt.show()
 
+def relative_error_x(pde, exact_solution, T, a, mu, Ms):
+
+    step_num = len(Ms)
+
+    errvec = np.zeros(step_num)
+    stepvec = np.zeros_like(errvec)
+
+    N = 1000
+
+    for i, M in enumerate(Ms):
+        print(M)
+        pde.solver(M,N)
+        u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
+        err = np.abs(pde.U_grid - u)
+        err = err.flatten()
+
+        Ind = np.argmax(err)
+        assert u.flatten()[Ind] != 0, "u[Ind] == 0"
+        e = err[Ind] / np.abs(u.flatten()[Ind])
+        errvec[i] = e
+
+        stepvec[i] = pde.h
+
+    order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+    print(f"order: {order}")
+    plt.loglog(stepvec,errvec)
+    plt.show()
+
+def relative_error_t(pde, exact_solution, T, a, mu, Ns):
+
+    step_num = len(Ns)
+
+    errvec = np.zeros(step_num)
+    stepvec = np.zeros_like(errvec)
+
+    M = 1000
+
+    for i, N in enumerate(Ns):
+        print(N)
+        pde.solver(M,N)
+        u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
+        err = np.abs(pde.U_grid - u)
+        err = err.flatten()
+
+        Ind = np.argmax(err)
+        assert u.flatten()[Ind] != 0, "u[Ind] == 0"
+        e = err[Ind] / np.abs(u.flatten()[Ind])
+        errvec[i] = e
+
+        stepvec[i] = pde.k
+
+    order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+    print(f"order: {order}")
+    plt.loglog(stepvec,errvec)
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
 
@@ -125,8 +183,8 @@ if __name__ == '__main__':
     #poisson.U = U
     #poisson.plot2D()
 
-    poisson.solver(M,N)
-    poisson.plot2D(x_skip=3, t_skip=3)
+    #poisson.solver(M,N)
+    #poisson.plot2D(x_skip=3, t_skip=3)
     #print((poisson.U_grid).shape)
     #print(poisson.U_grid)
 
@@ -174,19 +232,25 @@ if __name__ == '__main__':
 #endregion
 
     def convergence_test(pde, exact_solution, T, a, mu):
-        step_num = 8 #Different stepsizes
+        #step_num = 8 #Different stepsizes
+        step_num = 5
         stepvec = np.zeros(step_num)
         errvec = np.zeros(step_num)
         M = 10
         N = 1000
+
+        Ms = [660, 670, 680, 690, 700]
         for i in range(step_num):
+        #for M in Ms:
+            M = Ms[i]
+            print(M)
             pde.solver(M,N)
             err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
 
             stepvec[i] = pde.h
             errvec[i] = npl.norm(err.flatten(), np.inf)
 
-            M *= 2
+            #M *= 2
         order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
         #print(f"Stepvec: {stepvec}")
         #print(f"Errvec: {errvec}")
@@ -220,16 +284,18 @@ if __name__ == '__main__':
         print(f"order: {order}")
 
 
-<<<<<<< HEAD
-    convergence_test(poisson,exact_solution, T, a, mu)
+    #convergence_test(poisson,exact_solution, T, a, mu)
+
+    #def relative_error_x(pde, exact_solution, T, a, mu, Ms):
+    Ms = [32, 64, 128, 256, 512, 670, 700, 730, 800]
+    #relative_error_x(poisson, exact_solution, T, a, mu, Ms)      
+    relative_error_t(poisson, exact_solution, T, a, mu, Ms)
 
     #goob = np.array([1,4,7])
     #groog = np.arange(10)+5
     #print(groog[goob])
 
 
-=======
->>>>>>> 99d701807e0f1d40d870375d3fa1b3a657e2afcf
     '''
     error = np.abs(u-poisson.U_grid)
     errvec = np.zeros(N+1,dtype=float)
@@ -241,4 +307,4 @@ if __name__ == '__main__':
     plt.show()
     '''
     #print(error[N,N])
-    '''
+
