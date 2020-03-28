@@ -175,58 +175,10 @@ if __name__ == '__main__':
     T=3
 
     poisson = PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,)
-    #print(poisson.f)
-
-    #import numpy.random as npr
-    #U = npr.randn(frames, M) + 15
-    #poisson.U = U
-    #poisson.plot2D()
 
     poisson.solver(M,N)
-    #poisson.plot2D(x_skip=3, t_skip=3)
-    #print((poisson.U_grid).shape)
-    #print(poisson.U_grid)
-    '''
-    u = exact_solution(M=M, N=N, T=T, a=a, mu=mu)
-    error = np.abs((u[1:,]-poisson.U_grid[1:,])/u[1:,])
-    print(error.shape)
-    '''
 
-#region eh
 
-    '''
-    plt.plot(poisson.x, u[0,], label="$U_0$")
-    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
-    plt.plot(poisson.x, u[5,], label="$U_5$")
-    plt.plot(poisson.x, u[10,], label="$U_{10}$")
-    plt.plot(poisson.x, u[50,], label="$U_{50}$")
-    plt.plot(poisson.x, u[N,], label="$U_N$")
-    plt.title("Exact solution")
-    plt.legend()
-    plt.show()
 
-    plt.plot(poisson.x,(poisson.U_grid)[0,], label="$U_0$")
-    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
-    plt.plot(poisson.x,(poisson.U_grid)[5,], label="$U_5$")
-    plt.plot(poisson.x,(poisson.U_grid)[10,], label="$U_{10}$")
-    plt.plot(poisson.x,(poisson.U_grid)[15,], label="$U_{15}$")
-    plt.plot(poisson.x,(poisson.U_grid)[poisson.N,], label="$U_N$")
-    plt.title("Numerical solution")
-    plt.legend()
-    plt.show()
-    '''
-    '''
-    plt.plot(poisson.x, error[0,], label="$U_0$")
-    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
-    plt.plot(poisson.x, error[5,], label="$U_5$")
-    plt.plot(poisson.x, error[10,], label="$U_{10}$")
-    plt.plot(poisson.x, error[50,], label="$U_{50}$")
-    plt.plot(poisson.x,error[poisson.N,], label="$U_N$")
-    plt.title("Error")
-    plt.legend()
-    plt.show()
-    '''
-
-#endregion
 
     convergence_test_X(poisson,exact_solution, T, a, mu)
