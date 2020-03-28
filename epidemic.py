@@ -11,7 +11,7 @@ from scipy.sparse.linalg import factorized
 
 class Epidemic:
     #def __init__(self, f, u_0, mu, T, g_0=0, g_M=0, x_0=0, x_M=1, t_0=0)
-    def __init__(self, beta, gamma, mu_s, mu_i, s0, i0, x_0, x_M):
+    def __init__(self, beta, gamma, mu_s, mu_i, T, s0, i0, x_0=0, x_M=1, t_0=0, g_0=0, g_M=0):
 
         self.beta = beta # interaction constant between infected and susceptible
         self.gamma = gamma # Rate of infected population healing
@@ -26,15 +26,25 @@ class Epidemic:
         # Domain
         self.x_0 = x_0
         self.x_M = x_M
+        self.t_0 = t_0
+        self.T = T
 
-        self.f = lambda u: np.array([-beta/self.k_i * u[1] * u[0], # Reaction term in pde
-                                beta/self.k_i * u[1] * u[0] - gamma/self.k_i * u[1]], dtype=float)
+        # Dirichlet boundary conditions
+        self.g_0 = g_0
+        self.g_M = g_M
+
+        #self.f = lambda u: np.array([-beta/self.k_i * u[1] * u[0], # Reaction term in pde
+        #                        beta/self.k_i * u[1] * u[0] - gamma/self.k_i * u[1]], dtype=float)
+
+        # Reaction terms
+        self.f_i = lambda i, s: -self.beta * i * s
+        self.f_s = lambda i, s: self.beta * i * s - self.gamma * i
 
         # initial state as function of x
-        self.u0 = lambda x: np.array([self.s0(x), self.i0(x)*self.k_i], dtype=float) 
+        #self.u0 = lambda x: np.array([self.s0(x), self.i0(x)*self.k_i], dtype=float) 
 
 
-    def solver(self, M, N, frames=0):
+    def solver(self, M, N):
 
         #Initializing the grid and stepsizes
         self.M = M
@@ -45,18 +55,21 @@ class Epidemic:
         self.k = (self.T - self.t_0) / N
         self.r = self.mu * self.k / self.h**2
 
-        #initializing the vectors for U^n and U^*
-        self.U_n = self.u_0(self.x)
-        self.U_s = np.zeros((M+1), dtype = float)
+        #initializing the vectors for i^n,s^n and i^*,s^*
+        self.i_n = self.u_0(self.x)
+        self.i_s = np.zeros((M+1), dtype = float)
+        self.s_n = self.u_0(self.x)
+        self.s_s = np.zeros((M+1), dtype = float)
 
         #Initializing the matrix for the numerical solution on the grid
-        self.U_grid = np.zeros((N+1,M+1), dtype = float)
-        self.U_grid[0,] += self.U_n
+        self.i_grid = np.zeros((N+1,M+1), dtype = float)
+        self.i_grid[0,] += self.i_n
+        self.s_grid = np.zeros((N+1,M+1), dtype = float)
+        self.s_grid[0,] += self.s_n
 
 
 
         #Construction of the system to find U^*
-        #A = np.tridiag(-self.r*0.5,1+self.r,-self.r*0.5, M+1)
         A = np.zeros((M+1, M+1), dtype = float)
         A += np.diag(np.full(M, -self.r*0.5), -1)
         A += np.diag(np.full(M, -self.r*0.5), 1)
@@ -74,7 +87,8 @@ class Epidemic:
         A[M,M]=1
 
         for t in range(1,N+1):
-            b = B @ self.U_n + self.k*self.f(self.U_n)
+            b_i = B @ self.i_n + self.k*self.f_i(self.i_n, self.s_n)
+            b_s = B @ self.s_n + self.k*self.f_s(self.i_n, self.s_n)
 
             b[0] = self.g_0
             b[M] = self.g_M
@@ -85,18 +99,18 @@ class Epidemic:
             self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
             self.U_grid[t,] += self.U_n
 
-            #print(f"U_n {self.U_n}")
+
         
-    def plot2D(self, title="", x_skip=1, t_skip=1):
+    def plot2D(self, title_i="Infected", title_s="Susceptible", x_skip=1, t_skip=1):
         #def plot2D(X, Y, Z, title=""):
         # Stolen from project in TMA4215 Numerisk Matematikk and modified
 
-
+        
         x = np.linspace(self.x_0, self.x_M, self.M+1, dtype=float)[::x_skip]
         t = np.linspace(self.t_0, self.T, self.N+1, dtype=float)[::t_skip]
         X, Y = np.meshgrid(x,t)
 
-        Z = self.U_grid[::t_skip,::x_skip]
+        Z = self.i_grid[::t_skip,::x_skip]
 
         # Define a new figure with given size and dpi
         fig = plt.figure(figsize=(8, 6), dpi=100)
@@ -104,14 +118,29 @@ class Epidemic:
         surf = ax.plot_surface(X, Y, Z,
                             rstride=1, cstride=1, # Sampling rates for the x and y input data
                             cmap=cm.viridis)      # Use the new fancy colormap viridis
-
         # Set initial view angle
         ax.view_init(30, 225)
-
         # Set labels and show figure
         ax.set_xlabel('$x$')
         ax.set_ylabel('$t$')
-        ax.set_title(title)
+        ax.set_title(title_i)
+
+
+        Z = self.s_grid[::t_skip,::x_skip]
+
+        # Define a new figure with given size and dpi
+        fig = plt.figure(figsize=(8, 6), dpi=100)
+        ax = fig.gca(projection='3d')
+        surf = ax.plot_surface(X, Y, Z,
+                            rstride=1, cstride=1, # Sampling rates for the x and y input data
+                            cmap=cm.viridis)      # Use the new fancy colormap viridis
+        # Set initial view angle
+        ax.view_init(30, 225)
+        # Set labels and show figure
+        ax.set_xlabel('$x$')
+        ax.set_ylabel('$t$')
+        ax.set_title(title_s)
+
         plt.show()
 
     def isolated_development(self, s0, i0, T, N):
