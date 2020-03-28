@@ -28,16 +28,22 @@ class PDE:
     def solver(self, M, N, frames=0):
 
         #Initializing the grid and stepsizes
+        self.M = M
         self.x = np.linspace(self.x_0, self.x_M, M+1)
         self.h = (self.x_M-self.x_0)/M
+        self.N = N
         self.t = np.linspace(self.t_0, self.T, N+1)
         self.k = (self.T-self.t_0)/N
         self.r = self.mu*self.k/self.h**2
 
         #initializing the vectors for U^n and U^*
         self.U_n = self.u_0(self.x)
-        #self.U_n = np.zeros((M+1), dtype=float)
-        self.U_s = np.zeros((M+1), dtype=float)
+        self.U_s = np.zeros((M+1), dtype = float)
+
+        #Initializing the matrix for the numerical solution on the grid
+        self.U_grid = np.zeros((N+1,M+1), dtype = float)
+        self.U_grid[0,] += self.U_n
+
 
         self.frames = frames
         # Amount of frames to keep, if frames=0, don't declare the storage
@@ -62,20 +68,20 @@ class PDE:
         A[M,M-1]=0
         A[M,M]=1
 
-        b = B @ self.U_n + self.k*self.f(self.U_n)
+        for t in range(1,N+1):
+            b = B @ self.U_n + self.k*self.f(self.U_n)
 
-        b[0] = self.g_0
-        b[M] = self.g_M
-        #Nå skal du finne et utrykk for U^* og så lage utrykk for U^n+1 og så lage forløkke.
+            b[0] = self.g_0
+            b[M] = self.g_M
 
-        self.U_s = npl.solve(A,b)
+            self.U_s = npl.solve(A,b)
 
+            #Computing U^(n+1)
+            self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
+            self.U_grid[t,] += self.U_n
 
-        print(self.U_s)
-        #print(b)
-        plt.plot(self.x,self.U_n)
-        plt.plot(self.x,self.U_s)
-        plt.show()
+            print(f"U_n {self.U_n}")
+
 
 
     def plot2D(self, title=""):
@@ -116,7 +122,7 @@ if __name__ == '__main__':
     M = 20
     N = 20
     frames=3
-    poisson = PDE(f=lambda x: 1*x,u_0=lambda x: -x*(x-1), mu=1.4, T=3,)
+    poisson = PDE(f=lambda x: 10*x,u_0=lambda x: np.sin(np.pi*x), mu=1, T=3,)
     #print(poisson.f)
 
     import numpy.random as npr
@@ -125,4 +131,16 @@ if __name__ == '__main__':
     #poisson.plot2D()
 
     poisson.solver(M,N,frames=frames)
-    print(poisson.k)
+    #poisson.plot2D()
+    #print((poisson.U_grid).shape)
+    #print(poisson.U_grid)
+
+    plt.plot(poisson.x,(poisson.U_grid)[0,], label="$U_0$")
+    #plt.plot(poisson.x,(poisson.U_grid)[1,], label="$U_1$")
+    plt.plot(poisson.x,(poisson.U_grid)[5,], label="$U_5$")
+    plt.plot(poisson.x,(poisson.U_grid)[10,], label="$U_{10}$")
+    plt.plot(poisson.x,(poisson.U_grid)[15,], label="$U_{15}$")
+    plt.plot(poisson.x,(poisson.U_grid)[poisson.N,], label="$U_N$")
+    #plt.plot(self.x,self.U_s)
+    plt.legend()
+    plt.show()
