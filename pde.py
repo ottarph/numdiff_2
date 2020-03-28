@@ -181,16 +181,61 @@ if __name__ == '__main__':
     plt.show()
     '''
 
-    def convergence_test(pde, exact_solution):
-        p = 8 #Different stepsizes
-        stepvec = np.zeros(p)
-        errvec = np.zeros(p)
+    def convergence_test(pde, exact_solution, T, a, mu):
+        step_num = 8 #Different stepsizes
+        stepvec = np.zeros(step_num)
+        errvec = np.zeros(step_num)
         M = 10
+        N = 1000
+        for i in range(step_num):
+            pde.solver(M,N)
+            err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
 
-        
+            stepvec[i] = pde.h
+            errvec[i] = npl.norm(err.flatten(), np.inf)
+
+            M *= 2
+        order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+        #print(f"Stepvec: {stepvec}")
+        #print(f"Errvec: {errvec}")
+        print(f"order: {order}")
+        plt.loglog(stepvec,errvec)
+        plt.show()
 
 
+    def convergence_testT(pde, exact_solution, T, a, mu):
+        step_num = 10 #Different stepsizes
+        stepvec = np.zeros(step_num)
+        errvec = np.zeros(step_num)
+        M = 1000
+        N = 10
+        for i in range(step_num):
+            pde.solver(M,N)
+            err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
 
+            #Normvec is a vector of the max norm of the spatial error for every timestep,
+            #errvec contains the maxnorm of normvec, ie largest error in time
+            stepvec[i] = pde.k
+            normvec = np.zeros(M+1)
+            for j in range(M+1):
+                normvec[j] = npl.norm(err[:,j], np.inf)
+            errvec[i] = npl.norm(normvec, np.inf)
+
+            N *= 2
+        order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
+        print(f"Stepvec: {stepvec}")
+        print(f"Errvec: {errvec}")
+        print(f"order: {order}")
+
+
+    convergence_test(poisson,exact_solution, T, a, mu)
+
+    #goob = np.array([1,4,7])
+    #groog = np.arange(10)+5
+    #print(groog[goob])
+
+
+    '''
     error = np.abs(u-poisson.U_grid)
     errvec = np.zeros(N+1,dtype=float)
     for i in range(N+1):
@@ -199,4 +244,5 @@ if __name__ == '__main__':
 
     plt.plot(poisson.t,errvec)
     plt.show()
+    '''
     #print(error[N,N])
