@@ -10,8 +10,8 @@ import epidemic
 
 
 #For section: A Dirichlet problem on the unit interval
-M = 200
-N = 200
+M = 100
+N = 100
 mu = 0.5
 a = 3
 T=1
@@ -21,38 +21,48 @@ eq.solver(M,N)
 
 #plt.plot(eq.x,eq.U_grid[15], label="U_{15}")
 exact = pde_sparse.exact_solution(M, N, T, a, mu)
+err = np.abs(exact-eq.U_grid)
 
-
-plt.plot(eq.x,eq.U_grid[0], label="$U_{0}$")
-plt.plot(eq.x,eq.U_grid[50], label="$U_{50}$")
-plt.plot(eq.x,eq.U_grid[100], label="$U_{100}$")
-plt.plot(eq.x,eq.U_grid[150], label="$U_{150}$")
-plt.plot(eq.x,eq.U_grid[200], label="$U_{200}$")
-plt.title("Numerical solution")
+#Numerical solution
+for i in [0,25,50,75,100]:
+    lab = "$U^{" + str(i) + "}$"
+    plt.plot(eq.x, eq.U_grid[i], label=lab)
+#plt.title("Numerical solution")
 plt.gca().spines['right'].set_visible(False)
 plt.gca().spines['top'].set_visible(False)
+plt.xlabel("x")
+plt.ylabel("U")
 plt.legend()
 plt.show()
 
-plt.plot(eq.x,exact[0], label="$U_{0}$")
-plt.plot(eq.x,exact[50], label="$U_{500}$")
-plt.plot(eq.x,exact[100], label="$U_{1000}$")
-plt.plot(eq.x,exact[150], label="$U_{1500}$")
-plt.plot(eq.x,exact[200], label="$U_{2000}$")
+#absolute error
+for i in [0,25,50,75,100]:
+    lab = "$U^{" + str(i) + "}$"
+    plt.plot(eq.x, err[i], label=lab)
+#plt.title("Error")
+plt.gca().spines['right'].set_visible(False)
+plt.gca().spines['top'].set_visible(False)
+plt.xlabel("x")
+plt.ylabel("|u-U|")
+plt.legend()
+plt.show()
+
+'''
+#exact solution
+for i in [0,25,50,75,100]:
+    lab = "$U^{" + str(i) + "}$"
+    plt.plot(eq.x, exact[i], label=lab)
 plt.title("Exact solution")
 plt.gca().spines['right'].set_visible(False)
 plt.gca().spines['top'].set_visible(False)
+plt.xlabel("x")
+plt.ylabel("U")
 plt.legend()
 plt.show()
+'''
 
 '''
 Ns = [32, 64, 128, 256]
 pde_sparse.convergence_test_T(eq, pde_sparse.exact_solution, T, a, mu)
 pde_sparse.relative_error_t(eq, pde_sparse.exact_solution, T, a, mu, Ns)
-'''
-
-'''
-print(f"k = {eq.k}")
-phi = eq.k*mu/2
-print(f"phi = {phi}")
 '''
