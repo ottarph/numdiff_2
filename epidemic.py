@@ -18,7 +18,6 @@ class Epidemic:
 
         self.mu_s = mu_s # Diffusion constant for susceptible population
         self.mu_i = mu_i # Diffusion constant for infected population
-        self.k_i = mu_i / mu_s # mu_s * k_i = mu_i
 
         self.s0 = s0 # Initial distribution of susceptible population as a function of x
         self.i0 = i0 # Initial distribution of infected population as a function of x
@@ -168,23 +167,27 @@ class Epidemic:
 
         plt.show()
 
-    def curve(self, show_removed=False):
+    def curve(self, show_removed=False, hospital=False, show=True, title=""):
 
         t = np.linspace(self.t_0, self.T, self.N+1, dtype=float)
         S = np.sum(self.S_grid, axis=1)
         I = np.sum(self.I_grid, axis=1)
+        N = S[0] + I[0]
         if show_removed:
-            N = S[0] + I[0]
             R = N - S - I
 
         plt.plot(t, S, 'k-', label='$S(t)$')
         plt.plot(t, I, 'k--', label='$I(t)$')
         if show_removed:
             plt.plot(t, R, color='black', linestyle='dotted', label='$R(t)$')
-        plt.axhline(y=0, linewidth=0.5, color='black')
+        plt.axhline(y=0, linewidth=1, color='black')
+        if hospital:
+            plt.axhline(y=hospital*N, linestyle='dotted', color='black', linewidth=1, label='Hospital capacity')
         plt.legend()
         plt.xlim(self.t_0, self.T)
-        plt.show()
+        if show:
+            plt.show()
+        plt.title(title)
 
 
     def isolated_development(self, s0, i0, T, N):
