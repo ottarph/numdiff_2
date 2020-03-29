@@ -168,6 +168,25 @@ class Epidemic:
 
         plt.show()
 
+    def curve(self, show_removed=False):
+
+        t = np.linspace(self.t_0, self.T, self.N+1, dtype=float)
+        S = np.sum(self.S_grid, axis=1)
+        I = np.sum(self.I_grid, axis=1)
+        if show_removed:
+            N = S[0] + I[0]
+            R = N - S - I
+
+        plt.plot(t, S, 'k-', label='$S(t)$')
+        plt.plot(t, I, 'k--', label='$I(t)$')
+        if show_removed:
+            plt.plot(t, R, color='black', linestyle='dotted', label='$R(t)$')
+        plt.axhline(y=0, linewidth=0.5, color='black')
+        plt.legend()
+        plt.xlim(self.t_0, self.T)
+        plt.show()
+
+
     def isolated_development(self, s0, i0, T, N):
 
         def rk4(f, u0, T, N):
@@ -218,25 +237,20 @@ class Epidemic:
 
 if __name__ == '__main__':
 
-    i0 = lambda x: np.sin(np.pi*x) * 0.3
-    s0 = lambda x: np.sin(np.pi*x) * 0.7
+    i0 = lambda x: np.sin(np.pi*x)**2 * 0.3
+    s0 = lambda x: np.sin(np.pi*x)**2 * 0.7
     beta = 3
     gamma = 1
     mu = 0.1
-    T = 1
+    T = 10
 
-#def __init__(self, beta, gamma, mu_s, mu_i, T, s0, i0, x_0=0, x_M=1, t_0=0, g_0=0, g_M=0):    
     plague = Epidemic(beta=beta, gamma=gamma, mu_s=mu, mu_i=mu, T=T,
                         s0=s0, i0=i0)
 
-    #plague.isolated_development(1, 0.05, 10, 100)
 
-    M = 32
-    N = 32
+    M = 64
+    N = 64
     plague.solver(M, N)
-    plague.plot2D()
-
-
-
-    
+    #plague.plot2D()
+    plague.curve()
 
