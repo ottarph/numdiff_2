@@ -29,19 +29,14 @@ class Epidemic:
         self.t_0 = t_0
         self.T = T
 
-        # Dirichlet boundary conditions
+        ## Dirichlet boundary conditions
+        # Neumann boundary conditions
         self.g_0 = g_0
         self.g_M = g_M
-
-        #self.f = lambda u: np.array([-beta/self.k_i * u[1] * u[0], # Reaction term in pde
-        #                        beta/self.k_i * u[1] * u[0] - gamma/self.k_i * u[1]], dtype=float)
-
+      
         # Reaction terms
-        self.f_i = lambda i, s: -self.beta * i * s
-        self.f_s = lambda i, s: self.beta * i * s - self.gamma * i
-
-        # initial state as function of x
-        #self.u0 = lambda x: np.array([self.s0(x), self.i0(x)*self.k_i], dtype=float) 
+        self.f_s = lambda i, s: -self.beta * i * s
+        self.f_i = lambda i, s: self.beta * i * s - self.gamma * i
 
 
     def solver(self, M, N):
@@ -93,15 +88,16 @@ class Epidemic:
         B_s += np.diag(np.full(M, self.r_s*0.5), 1)
         B_s += np.diag(np.full(M+1, 1 - self.r_s))
 
-        # fixing boundary conditions for U^*
-        A_i[0,0]=1
-        A_i[0,1]=0
-        A_i[M,M-1]=0
+
+        #First order Neumann boundary conditions for U^*
+        A_i[0,0]=-1
+        A_i[0,1]=1
+        A_i[M,M-1]=-1
         A_i[M,M]=1
 
-        A_s[0,0]=1
-        A_s[0,1]=0
-        A_s[M,M-1]=0
+        A_s[0,0]=-1
+        A_s[0,1]=1
+        A_s[M,M-1]=-1
         A_s[M,M]=1
 
         for t in range(1,N+1):
@@ -240,29 +236,7 @@ if __name__ == '__main__':
     plague.solver(M, N)
     plague.plot2D()
 
-#region slices
-    '''
-    plt.figure()
-    x = plague.x
-    i0 = plague.I_grid[0,:]
-    s0 = plague.S_grid[0,:]
 
-    i1 = plague.I_grid[N//2,:]
-    s1 = plague.S_grid[N//2,:]
-
-    i2 = plague.I_grid[N,:]
-    s2 = plague.S_grid[N,:]
-
-    plt.plot(x, i0, label='$I, t=0$')
-    plt.plot(x, i1, label='$I, t=T/2$')
-    plt.plot(x, i2, label='$I, t=T$')
-    plt.plot(x, s0, linestyle='dashed', label='$S, t=0$')
-    plt.plot(x, s1, linestyle='dashed', label='$S, t=T/2$')
-    plt.plot(x, s2, linestyle='dashed', label='$S, t=T$')
-    plt.legend()
-    plt.show()
-    '''
-#endregion
 
     
 
