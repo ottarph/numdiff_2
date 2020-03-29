@@ -135,6 +135,9 @@ def relative_error_x(pde, exact_solution, T, a, mu, Ms):
 
         stepvec[i] = pde.h
 
+    Ind = np.argmin(errvec)
+    print(f'Lowest error for M = {Ms[Ind]}')
+
     order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
     print(f"order: {order}")
     plt.loglog(stepvec,errvec)
@@ -163,6 +166,9 @@ def relative_error_t(pde, exact_solution, T, a, mu, Ns):
 
         stepvec[i] = pde.k
 
+    Ind = np.argmin(errvec)
+    print(f'Lowest error for M = {Ms[Ind]}')
+
     order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
     print(f"order: {order}")
     plt.loglog(stepvec,errvec)
@@ -186,12 +192,13 @@ def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, f
     return U
 
 def convergence_test_X(pde, exact_solution, T, a, mu):
-    step_num = 6 #Different stepsizes
+    step_num = 8 #Different stepsizes
     stepvec = np.zeros(step_num)
     errvec = np.zeros(step_num)
     M = 10
     N = 1000
     for i in range(step_num):
+        print(M)
         pde.solver(M,N)
         err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
 
@@ -239,9 +246,10 @@ if __name__ == '__main__':
 
     #convergence_test_X(poisson,exact_solution, T, a, mu)
 
-    Ms = [32, 64, 128, 256, 512, 670, 680, 690, 700, 710, 720, 730, 800, 900, 1000, 1100, 1200]
+    Ms = [32, 64, 128, 256, 512, 670, 680, 690, 700, 710, 720, 730]#, 800, 900, 1000, 1100, 1200]
     relative_error_x(poisson, exact_solution, T, a, mu, Ms)      
     #relative_error_t(poisson, exact_solution, T, a, mu, Ms)
+    #convergence_test_X(poisson, exact_solution, T, a, mu)
 
     #poisson.solver(1000,1000)
     #poisson.plot2D(x_skip=10, t_skip=10)
