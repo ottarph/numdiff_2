@@ -103,7 +103,7 @@ class PDE:
         ax.set_ylabel('$t$')
         ax.set_title(title)
         plt.show()
-        
+
 
 def relative_error_x(pde, exact_solution, T, a, mu, Ms):
 
@@ -217,7 +217,7 @@ def convergence_test_T(pde, exact_solution, T, a, mu):
     order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
     print(f"order: {order}")
 
-    
+
 
 
 if __name__ == '__main__':
@@ -229,9 +229,14 @@ if __name__ == '__main__':
     T=3
 
     poisson = PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,)
+    poisson.solver(M,N)
+
+    plt.plot(poisson.x,poisson.U_grid[0])
+    plt.show()
+
 
     #convergence_test_X(poisson,exact_solution, T, a, mu)
 
     Ms = [32, 64, 128, 256]#, 512, 670, 700, 730, 800]
-    #relative_error_x(poisson, exact_solution, T, a, mu, Ms)      
+    #relative_error_x(poisson, exact_solution, T, a, mu, Ms)
     relative_error_t(poisson, exact_solution, T, a, mu, Ms)
