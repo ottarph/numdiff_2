@@ -16,12 +16,11 @@ mu = 0.5
 a = 3
 T=1
 
-eq = pde_sparse.PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,)
-eq.solver(M,N)
+eq = pde_sparse.PDE(f=lambda x: a*x,u_0=lambda x: np.sin(np.pi*x), mu=mu, T=T,) #Initializing the pde
+eq.solver(M,N) #Solving the I/BVP
 
-#plt.plot(eq.x,eq.U_grid[15], label="U_{15}")
-exact = pde_sparse.exact_solution(M, N, T, a, mu)
-err = np.abs(exact-eq.U_grid)
+exact = pde_sparse.exact_solution(M, N, T, a, mu) #Analytical solution
+err = np.abs(exact-eq.U_grid) #Matrix of error terms
 
 #Numerical solution
 for i in [0,25,50,75,100]:
@@ -47,22 +46,7 @@ plt.ylabel("|u-U|")
 plt.legend()
 plt.show()
 
-'''
-#exact solution
-for i in [0,25,50,75,100]:
-    lab = "$U^{" + str(i) + "}$"
-    plt.plot(eq.x, exact[i], label=lab)
-plt.title("Exact solution")
-plt.gca().spines['right'].set_visible(False)
-plt.gca().spines['top'].set_visible(False)
-plt.xlabel("x")
-plt.ylabel("U")
-plt.legend()
-plt.show()
-'''
 
-'''
-Ns = [32, 64, 128, 256]
+#Plot for experimental order of convergence
+pde_sparse.convergence_test_X(eq, pde_sparse.exact_solution, T, a, mu)
 pde_sparse.convergence_test_T(eq, pde_sparse.exact_solution, T, a, mu)
-pde_sparse.relative_error_t(eq, pde_sparse.exact_solution, T, a, mu, Ns)
-'''

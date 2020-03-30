@@ -179,7 +179,7 @@ def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, f
     return U
 
 def convergence_test_X(pde, exact_solution, T, a, mu):
-    step_num = 6 #Different stepsizes
+    step_num = 8 #Different stepsizes
     stepvec = np.zeros(step_num)
     errvec = np.zeros(step_num)
     M = 10
@@ -200,7 +200,7 @@ def convergence_test_X(pde, exact_solution, T, a, mu):
 
 
 def convergence_test_T(pde, exact_solution, T, a, mu):
-    step_num = 7 #Different stepsizes
+    step_num = 8 #Different stepsizes
     stepvec = np.zeros(step_num)
     errvec = np.zeros(step_num)
     M = 1000

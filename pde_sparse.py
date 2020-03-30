@@ -67,7 +67,7 @@ class PDE:
         A[0,1]=0
         A[M,M-1]=0
         A[M,M]=1
-        
+
         solve = factorized(A.tocsc())
 
         for t in range(1,N+1):
@@ -110,7 +110,7 @@ class PDE:
         ax.set_ylabel('$t$')
         ax.set_title(title)
         plt.show()
-        
+
 
 def relative_error_x(pde, exact_solution, T, a, mu, Ms):
 
@@ -192,24 +192,27 @@ def exact_solution(M, N, T, a, mu): #Function for computing an exact solution, f
     return U
 
 def convergence_test_X(pde, exact_solution, T, a, mu):
-    step_num = 8 #Different stepsizes
+    step_num = 7 #Different stepsizes
     stepvec = np.zeros(step_num)
     errvec = np.zeros(step_num)
     M = 10
-    N = 1000
+    N = 5000
     for i in range(step_num):
-        print(M)
         pde.solver(M,N)
         err = pde.U_grid - exact_solution(M=M, N=N, T=T, a=a, mu=mu)
-
         stepvec[i] = pde.h
         #taking the maximum norm of all gridpoints and timesteps
         errvec[i] = npl.norm(err.flatten(), np.inf)
 
         M *= 2
     order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
-    print(f"order: {order}")
-    plt.loglog(stepvec,errvec)
+    print(f"order in h: {order}")
+    plt.loglog(stepvec,errvec, marker='.', color="green")
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['top'].set_visible(False)
+    plt.xlabel("h")
+    plt.ylabel("error")
+    plt.grid(True)
     plt.show()
 
 
@@ -217,7 +220,7 @@ def convergence_test_T(pde, exact_solution, T, a, mu):
     step_num = 7 #Different stepsizes
     stepvec = np.zeros(step_num)
     errvec = np.zeros(step_num)
-    M = 1000
+    M = 5000
     N = 10
     for i in range(step_num):
         pde.solver(M,N)
@@ -229,9 +232,16 @@ def convergence_test_T(pde, exact_solution, T, a, mu):
 
         N *= 2
     order = np.polyfit(np.log(stepvec),np.log(errvec),1)[0]
-    print(f"order: {order}")
+    print(f"order in k: {order}")
+    plt.loglog(stepvec,errvec, marker='.',color="green")
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['top'].set_visible(False)
+    plt.xlabel("k")
+    plt.ylabel("error")
+    plt.grid(True)
+    plt.show()
 
-    
+
 
 
 if __name__ == '__main__':
@@ -247,7 +257,7 @@ if __name__ == '__main__':
     #convergence_test_X(poisson,exact_solution, T, a, mu)
 
     Ms = [32, 64, 128, 256, 512, 670, 680, 690, 700, 710, 720, 730]#, 800, 900, 1000, 1100, 1200]
-    relative_error_x(poisson, exact_solution, T, a, mu, Ms)      
+    relative_error_x(poisson, exact_solution, T, a, mu, Ms)
     #relative_error_t(poisson, exact_solution, T, a, mu, Ms)
     #convergence_test_X(poisson, exact_solution, T, a, mu)
 
