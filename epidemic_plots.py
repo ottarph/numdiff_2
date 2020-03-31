@@ -1,6 +1,6 @@
 from epi_sparse import *
 
-save = True
+save = False
 
 norm = lambda x: np.exp(-x**2 / 2) / np.sqrt(2*np.pi)
 

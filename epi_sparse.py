@@ -200,8 +200,6 @@ class Epidemic:
         plt.xlim(self.t_0, self.T)
         plt.xlabel('$t$', fontsize=13)
         plt.title(title)
-        #plt.gca().spines['right'].set_visible(False)
-        #plt.gca().spines['top'].set_visible(False)
         if show:
             plt.show()
         
