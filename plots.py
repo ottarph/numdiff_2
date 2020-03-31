@@ -5,7 +5,6 @@ import numpy.linalg as npl
 import matplotlib.pyplot as plt
 
 import pde_sparse
-import epidemic
 
 
 #For section: A Dirichlet problem on the unit interval
