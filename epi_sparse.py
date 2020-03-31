@@ -98,31 +98,6 @@ class Epidemic:
         B_i[M,M-1] = self.r_i * 0.5
         
 
-
-        '''
-        A_i = np.zeros((M+1, M+1), dtype = float)
-        A_i += np.diag(np.full(M, -self.r_i*0.5), -1)
-        A_i += np.diag(np.full(M, -self.r_i*0.5), 1)
-        A_i += np.diag(np.full(M+1, 1 + self.r_i))
-
-        B_i = np.zeros((M+1, M+1), dtype = float)
-        B_i += np.diag(np.full(M, self.r_i*0.5), -1)
-        B_i += np.diag(np.full(M, self.r_i*0.5), 1)
-        B_i += np.diag(np.full(M+1, 1 - self.r_i))
-
-        
-        A_s = np.zeros((M+1, M+1), dtype = float)
-        A_s += np.diag(np.full(M, -self.r_s*0.5), -1)
-        A_s += np.diag(np.full(M, -self.r_s*0.5), 1)
-        A_s += np.diag(np.full(M+1, 1 + self.r_s))
-
-        B_s = np.zeros((M+1, M+1), dtype = float)
-        B_s += np.diag(np.full(M, self.r_s*0.5), -1)
-        B_s += np.diag(np.full(M, self.r_s*0.5), 1)
-        B_s += np.diag(np.full(M+1, 1 - self.r_s))
-        '''
-
-
         #First order Neumann boundary conditions for U^*
         A_i[0,0]=-1
         A_i[0,1]=1
@@ -148,12 +123,10 @@ class Epidemic:
             b_s[0] = self.g_0
             b_s[M] = self.g_M
 
-            #self.U_s = npl.solve(A,b)
             self.I_s = solve_i(b_i)
             self.S_s = solve_s(b_s)
 
             #Computing U^(n+1)
-            #self.U_n = self.U_s + (self.k/2)*(self.f(self.U_s)-self.f(self.U_n))
             self.I_n = self.I_s + (self.k/2) * (self.f_i(self.I_s, self.S_s) - self.f_i(self.I_n, self.S_n))
             self.S_n = self.S_s + (self.k/2) * (self.f_s(self.I_s, self.S_s) - self.f_s(self.I_n, self.S_n))
 
@@ -163,7 +136,7 @@ class Epidemic:
 
 
         
-    def plot2D(self, title_i="Infected", title_s="Susceptible", x_skip=1, t_skip=1):
+    def plot2D(self, title_i="Infected", title_s="Susceptible", x_skip=1, t_skip=1, show=True):
         #def plot2D(X, Y, Z, title=""):
         # Stolen from project in TMA4215 Numerisk Matematikk and modified
 
@@ -171,6 +144,21 @@ class Epidemic:
         x = np.linspace(self.x_0, self.x_M, self.M+1, dtype=float)[::x_skip]
         t = np.linspace(self.t_0, self.T, self.N+1, dtype=float)[::t_skip]
         X, Y = np.meshgrid(x,t)
+
+        Z = self.S_grid[::t_skip,::x_skip]
+
+        # Define a new figure with given size and dpi
+        fig = plt.figure(figsize=(8, 6), dpi=100)
+        ax = fig.gca(projection='3d')
+        surf = ax.plot_surface(X, Y, Z,
+                            rstride=1, cstride=1, # Sampling rates for the x and y input data
+                            cmap=cm.viridis)      # Use the new fancy colormap viridis
+        # Set initial view angle
+        ax.view_init(30, 225)
+        # Set labels and show figure
+        ax.set_xlabel('$x$')
+        ax.set_ylabel('$t$')
+        ax.set_title(title_s)
 
         Z = self.I_grid[::t_skip,::x_skip]
 
@@ -188,22 +176,8 @@ class Epidemic:
         ax.set_title(title_i)
 
 
-        Z = self.S_grid[::t_skip,::x_skip]
-
-        # Define a new figure with given size and dpi
-        fig = plt.figure(figsize=(8, 6), dpi=100)
-        ax = fig.gca(projection='3d')
-        surf = ax.plot_surface(X, Y, Z,
-                            rstride=1, cstride=1, # Sampling rates for the x and y input data
-                            cmap=cm.viridis)      # Use the new fancy colormap viridis
-        # Set initial view angle
-        ax.view_init(30, 225)
-        # Set labels and show figure
-        ax.set_xlabel('$x$')
-        ax.set_ylabel('$t$')
-        ax.set_title(title_s)
-
-        plt.show()
+        if show:
+            plt.show()
 
     def curve(self, show_removed=False, hospital=False, show=True, title=""):
 
@@ -214,6 +188,7 @@ class Epidemic:
         if show_removed:
             R = N - S - I
 
+        plt.figure()
         plt.plot(t, S, 'k-', label='$S(t)$')
         plt.plot(t, I, 'k--', label='$I(t)$')
         if show_removed:
@@ -221,11 +196,15 @@ class Epidemic:
         plt.axhline(y=0, linewidth=1, color='black')
         if hospital:
             plt.axhline(y=hospital*N, linestyle='dotted', color='black', linewidth=1, label='Hospital capacity')
-        plt.legend()
+        plt.legend(frameon=False, fontsize=13)
         plt.xlim(self.t_0, self.T)
+        plt.xlabel('$t$', fontsize=13)
+        plt.title(title)
+        #plt.gca().spines['right'].set_visible(False)
+        #plt.gca().spines['top'].set_visible(False)
         if show:
             plt.show()
-        plt.title(title)
+        
 
 
     def isolated_development(self, s0, i0, T, N):

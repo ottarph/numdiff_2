@@ -125,7 +125,7 @@ class Epidemic:
 
 
         
-    def plot2D(self, title_i="Infected", title_s="Susceptible", x_skip=1, t_skip=1):
+    def plot2D(self, title_i="Infected", title_s="Susceptible", x_skip=1, t_skip=1, show=True):
         #def plot2D(X, Y, Z, title=""):
         # Stolen from project in TMA4215 Numerisk Matematikk and modified
 
@@ -165,7 +165,8 @@ class Epidemic:
         ax.set_ylabel('$t$')
         ax.set_title(title_s)
 
-        plt.show()
+        if show:
+            plt.show()
 
     def curve(self, show_removed=False, hospital=False, show=True, title=""):
 

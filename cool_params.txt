@@ -1,0 +1,52 @@
+s0 = lambda x: 0*x + S0
+i0 = lambda x: I0 * np.sin(np.pi * norm(10*(x-0.5)))**2 / 0.19135259495744814
+
+a)
+beta = 7
+gamma = 5
+mu_s = 0.1
+mu_i = 0.02
+T = 10
+S0 = 0.99
+I0 = 0.01
+M = 100
+N = 200
+s0 = lambda x: 0*x + S0
+i0 = lambda x: I0 * np.sin(np.pi * norm(10*(x-0.5)))**2 / 0.19135259495744814
+
+b)
+beta = 8
+gamma = 5
+mu_s = 0.1
+mu_i = 0.02
+T = 10
+S0 = 0.99
+I0 = 0.01
+M = 100
+N = 200
+s0 = lambda x: 0*x + S0
+i0 = lambda x: I0 * np.sin(np.pi * norm(10*(x-0.5)))**2 / 0.19135259495744814
+
+f)
+beta = 8
+gamma = 5
+mu_s = 0.02
+mu_i = 0.0
+T = 10
+S0 = 0.99
+I0 = 0.01
+M, N = 100, 200
+s0 = lambda x: 0*x + S0
+i0 = lambda x: I0 * np.sin(np.pi * norm(10*(x-0.5)))**2 / 0.19135259495744814
+
+g)
+beta = 8
+gamma = 5
+mu_s = 0.05
+mu_i = 0.025
+T = 10
+S0 = 0.99
+I0 = 0.01
+M, N = 100, 200
+s0 = lambda x: 0*x + S0
+i0 = lambda x: I0 * np.sin(np.pi * norm(10*(x-0.5)))**2 / 0.19135259495744814
